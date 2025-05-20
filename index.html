@@ -1,18 +1,66 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="it">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Hunger Games VIP Simulator</title>
-  <link rel="stylesheet" href="style.css">
+  <title>VIPs Hunger Games</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #1a1a1a;
+      color: #f0f0f0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+      text-align: center;
+    }
+    textarea {
+      width: 100%;
+      height: 200px;
+      padding: 10px;
+      background: #2a2a2a;
+      border: 1px solid #555;
+      color: white;
+      font-size: 16px;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 18px;
+      background-color: crimson;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: darkred;
+    }
+    #logContainer {
+      margin-top: 30px;
+      text-align: left;
+    }
+    #eventLog {
+      list-style: none;
+      padding-left: 0;
+    }
+    #winnerContainer {
+      margin-top: 30px;
+      font-size: 24px;
+      font-weight: bold;
+      color: gold;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
-    <h1>Hunger Games dei VIP</h1>
-    
-    <textarea id="inputNames" placeholder="Inserisci un nome per riga..."></textarea>
-    <button id="startButton">Inizia il massacro</button>
-    
+    <h1>Hunger Games dei VIP - Giornaliero</h1>
+    <textarea id="inputNames" placeholder="Inserisci un nome per riga..."></textarea><br>
+    <button id="startButton">Inizia i Giochi</button>
+    <button id="nextDayButton" style="display:none;">Giorno Successivo</button>
+
     <div id="logContainer">
       <h2>Eventi</h2>
       <ul id="eventLog"></ul>
@@ -21,6 +69,85 @@
     <div id="winnerContainer"></div>
   </div>
 
-  <script src="script.js"></script>
+  <script>
+    let players = [];
+    let day = 0;
+
+    const nonFatalEvents = [
+      "si riposa all'ombra",
+      "trova dell'acqua fresca",
+      "costruisce un rifugio",
+      "evita un attacco di poco",
+      "si allea temporaneamente con un altro tributo",
+      "caccia senza successo",
+      "riceve una sponsorizzazione misteriosa",
+      "trova delle bacche commestibili"
+    ];
+
+    const fatalEvents = [
+      "è stato eliminato brutalmente da",
+      "muore in un incidente misterioso causato da",
+      "cade in una trappola preparata da",
+      "viene colto di sorpresa e ucciso da",
+      "non sopravvive alla notte, grazie a"
+    ];
+
+    document.getElementById('startButton').addEventListener('click', () => {
+      const input = document.getElementById('inputNames').value.trim();
+      players = input.split('\n').map(n => n.trim()).filter(n => n);
+      if (players.length < 2) {
+        alert('Inserisci almeno 2 nomi per iniziare.');
+        return;
+      }
+      day = 0;
+      document.getElementById('eventLog').innerHTML = '';
+      document.getElementById('winnerContainer').innerText = '';
+      document.getElementById('nextDayButton').style.display = 'inline-block';
+      nextDay();
+    });
+
+    document.getElementById('nextDayButton').addEventListener('click', () => {
+      nextDay();
+    });
+
+    function nextDay() {
+      if (players.length <= 1) return;
+
+      day++;
+      const logList = document.getElementById('eventLog');
+
+      const dayHeader = document.createElement('li');
+      dayHeader.innerHTML = `<strong>--- Giorno ${day} ---</strong>`;
+      logList.appendChild(dayHeader);
+
+      // Eventi non letali (1-4)
+      const eventsCount = Math.floor(Math.random() * 4) + 1;
+      for (let i = 0; i < eventsCount; i++) {
+        const p = players[Math.floor(Math.random() * players.length)];
+        const event = nonFatalEvents[Math.floor(Math.random() * nonFatalEvents.length)];
+        const li = document.createElement('li');
+        li.textContent = `${p} ${event}.`;
+        logList.appendChild(li);
+      }
+
+      // Morti (0-3)
+      const deathsCount = Math.min(players.length - 1, Math.floor(Math.random() * 4));
+      for (let i = 0; i < deathsCount; i++) {
+        const eliminatedIndex = Math.floor(Math.random() * players.length);
+        const eliminated = players.splice(eliminatedIndex, 1)[0];
+        const killer = players[Math.floor(Math.random() * players.length)];
+        const deathMessage = `${eliminated} ${fatalEvents[Math.floor(Math.random() * fatalEvents.length)]} ${killer}.`;
+        const li = document.createElement('li');
+        li.textContent = deathMessage;
+        logList.appendChild(li);
+      }
+
+      // Controlla vincitore
+      if (players.length === 1) {
+        document.getElementById('nextDayButton').style.display = 'none';
+        document.getElementById('winnerContainer').innerText = `🏆 Vincitore: ${players[0]} 🏆`;
+      }
+    }
+  </script>
 </body>
 </html>
