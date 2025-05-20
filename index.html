@@ -1,9 +1,9 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>VIPs Hunger Games</title>
+  <title>Hunger Games VIP - Giorno per Giorno</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -52,6 +52,13 @@
       font-weight: bold;
       color: gold;
     }
+    #recapContainer {
+      margin-top: 20px;
+      background-color: #2a2a2a;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #555;
+    }
   </style>
 </head>
 <body>
@@ -66,11 +73,14 @@
       <ul id="eventLog"></ul>
     </div>
 
+    <div id="recapContainer"></div>
+
     <div id="winnerContainer"></div>
   </div>
 
   <script>
     let players = [];
+    let kills = {};
     let day = 0;
 
     const nonFatalEvents = [
@@ -99,9 +109,12 @@
         alert('Inserisci almeno 2 nomi per iniziare.');
         return;
       }
+      kills = {};
+      players.forEach(p => kills[p] = 0);
       day = 0;
       document.getElementById('eventLog').innerHTML = '';
       document.getElementById('winnerContainer').innerText = '';
+      document.getElementById('recapContainer').innerHTML = '';
       document.getElementById('nextDayButton').style.display = 'inline-block';
       nextDay();
     });
@@ -115,6 +128,8 @@
 
       day++;
       const logList = document.getElementById('eventLog');
+      const recapContainer = document.getElementById('recapContainer');
+      let deadToday = [];
 
       const dayHeader = document.createElement('li');
       dayHeader.innerHTML = `<strong>--- Giorno ${day} ---</strong>`;
@@ -140,7 +155,19 @@
         const li = document.createElement('li');
         li.textContent = deathMessage;
         logList.appendChild(li);
+        kills[killer] = (kills[killer] || 0) + 1;
+        deadToday.push(eliminated);
       }
+
+      // Recap
+      let recapHtml = `<h3>Recap Giorno ${day}</h3>`;
+      recapHtml += `<p><strong>Morti oggi:</strong> ${deadToday.length > 0 ? deadToday.join(', ') : 'Nessuno'}</p>`;
+      recapHtml += `<p><strong>Uccisioni totali:</strong></p><ul>`;
+      for (const [name, count] of Object.entries(kills)) {
+        recapHtml += `<li>${name}: ${count} kill${count !== 1 ? 's' : ''}</li>`;
+      }
+      recapHtml += `</ul>`;
+      recapContainer.innerHTML = recapHtml;
 
       // Controlla vincitore
       if (players.length === 1) {
