@@ -59,20 +59,28 @@
     }
     /* Boccia di vetro */
     #glassContainer {
-      position: relative;
-      margin: 40px auto;
-      width: 150px;
-      height: 180px;
-      border: 5px solid #99ccff;
-      border-radius: 70% 70% 50% 50% / 60% 60% 40% 40%;
-      background: radial-gradient(circle at center, rgba(255,255,255,0.15), rgba(0,0,50,0.6));
-      box-shadow:
-        inset 0 0 15px 5px rgba(255,255,255,0.4),
-        0 0 15px 3px rgba(0,150,255,0.8);
-      overflow: visible;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
+  position: relative;
+  margin: 40px auto;
+  width: 150px;
+  height: 150px;
+  border: 5px solid #99ccff;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.3), rgba(0, 0, 50, 0.6));
+  box-shadow:
+    inset 0 0 20px 10px rgba(255, 255, 255, 0.7), /* luce vetro */
+    0 0 20px 5px rgba(0, 150, 255, 0.8);
+  overflow: visible;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  clip-path: polygon(
+    0% 20%,  /* inizio apertura sinistra */
+    0% 100%, 
+    100% 100%, 
+    100% 20%, /* apertura destra */
+    80% 0%,   /* apertura alta destra */
+    20% 0%    /* apertura alta sinistra */
+  );
+}
     #glassContainer.visible {
       opacity: 1;
     }
