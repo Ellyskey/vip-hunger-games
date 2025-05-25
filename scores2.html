@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Punteggio Tributi - Hunger Games VIP</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #1a1a1a;
+      color: #f0f0f0;
+      text-align: center;
+      padding: 50px;
+    }
+    input, textarea {
+      padding: 10px;
+      font-size: 18px;
+      border-radius: 8px;
+      border: none;
+      width: 400px;
+      margin-bottom: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 18px;
+      background-color: crimson;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: darkred;
+    }
+    .profile {
+      margin: 30px auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .card {
+      background-color: #2a2a2a;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      width: 200px;
+    }
+    img {
+      border-radius: 50%;
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border: 4px solid gold;
+    }
+    .score {
+      font-size: 28px;
+      color: gold;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Punteggio Tributi</h1>
+  <p>Inserisci una lista di nomi utenti Twitch (uno per riga)</p>
+  <textarea id="usernames" rows="10" placeholder="nome1\nnome2\nnome3..."></textarea>
+  <br>
+  <button onclick="generateScores()">Genera Punteggi</button>
+
+  <div class="profile" id="recap"></div>
+
+  <script>
+    async function generateScores() {
+      const usernamesText = document.getElementById('usernames').value.trim();
+      if (!usernamesText) return;
+
+      const usernames = usernamesText.split(/\n|,/).map(u => u.trim().toLowerCase()).filter(Boolean);
+      const recap = document.getElementById('recap');
+      recap.innerHTML = '<p>Caricamento in corso...</p>';
+
+      const results = await Promise.all(usernames.map(async username => {
+        try {
+          const response = await fetch(`https://decapi.me/twitch/avatar/${username}`);
+          const imageUrl = await response.text();
+          const score = Math.floor(Math.random() * 12) + 1;
+          return { username, imageUrl, score };
+        } catch (err) {
+          return { username, imageUrl: '', score: '-', error: true };
+        }
+      }));
+
+      recap.innerHTML = results.map(({ username, imageUrl, score, error }) => `
+        <div class="card">
+          ${imageUrl ? `<img src="${imageUrl}" alt="${username}">` : '<div style="width:100px;height:100px;background:#555;border-radius:50%;margin:auto;"></div>'}
+          <div><strong>${username}</strong></div>
+          <div class="score">${error ? 'Errore' : score + ' / 12'}</div>
+        </div>
+      `).join('');
+    }
+  </script>
+</body>
+</html>
