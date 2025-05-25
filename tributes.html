@@ -63,10 +63,11 @@
   <div id="cardContainer"></div>
 
   <script>
+    let currentDistrict = 1;
+
     async function assignDistrict() {
       const username = document.getElementById("username").value.trim().toLowerCase();
-      if (!username) return;
-      const district = Math.floor(Math.random() * 13) + 1;
+      if (!username || currentDistrict > 13) return;
       const cardContainer = document.getElementById("cardContainer");
 
       try {
@@ -78,10 +79,11 @@
         card.innerHTML = `
           <img src="${imageUrl}" alt="${username}">
           <div><strong>${username}</strong></div>
-          <div class="district">Distretto ${district}</div>
+          <div class="district">Distretto ${currentDistrict}</div>
         `;
 
         cardContainer.appendChild(card);
+        currentDistrict++;
 
         document.getElementById("username").value = "";
         document.getElementById("username").focus();
