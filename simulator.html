@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Hunger Games Simulator - Events & Tributes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #111;
+      color: #fff;
+      padding: 20px;
+    }
+    h2 {
+      margin-top: 40px;
+    }
+    textarea {
+      width: 100%;
+      height: 150px;
+      margin-bottom: 20px;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #ffcc00;
+      color: #000;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Customize Your Hunger Games</h1>
+
+  <div id="step1">
+    <h2>Step 1: Input Events</h2>
+    <label for="fatalEvents">Fatal Events (one per line):</label>
+    <textarea id="fatalEvents" placeholder="e.g., was struck by lightning"></textarea>
+
+    <label for="nonFatalEvents">Non-Fatal Events (one per line):</label>
+    <textarea id="nonFatalEvents" placeholder="e.g., found a hidden cache of supplies"></textarea>
+
+    <button onclick="proceedToStep2()">Proceed</button>
+  </div>
+
+  <div id="step2" class="hidden">
+    <h2>Step 2: Enter Tributes</h2>
+    <label for="tributes">Enter tribute names (one per line):</label>
+    <textarea id="tributes" placeholder="e.g., Katniss Everdeen\nPeeta Mellark"></textarea>
+    <button onclick="startGame()">Start the Game</button>
+  </div>
+
+  <script>
+    let fatalEvents = [];
+    let nonFatalEvents = [];
+
+    function proceedToStep2() {
+  fatalEvents = document.getElementById('fatalEvents').value.trim().split('\n').filter(Boolean);
+  nonFatalEvents = document.getElementById('nonFatalEvents').value.trim().split('\n').filter(Boolean);
+
+  // Set defaults if any are empty
+  if (fatalEvents.length === 0) {
+    fatalEvents = [
+      "was struck by lightning",
+      "was mauled by a wild animal",
+      "fell into a ravine",
+      "was poisoned",
+      "was killed in an explosion"
+    ];
+  }
+
+  if (nonFatalEvents.length === 0) {
+    nonFatalEvents = [
+      "found a hidden cache of supplies",
+      "made a temporary alliance",
+      "escaped a dangerous situation",
+      "found clean water",
+      "rested in a safe hiding spot"
+    ];
+  }
+
+  document.getElementById('step1').classList.add('hidden');
+  document.getElementById('step2').classList.remove('hidden');
+}
+
+    function startGame() {
+      const tributeNames = document.getElementById('tributes').value.trim().split('\n').filter(Boolean);
+
+      if (tributeNames.length < 2) {
+        alert("Please enter at least two tributes.");
+        return;
+      }
+
+      // Store data in localStorage for access in simulator page
+      localStorage.setItem('fatalEvents', JSON.stringify(fatalEvents));
+      localStorage.setItem('nonFatalEvents', JSON.stringify(nonFatalEvents));
+      localStorage.setItem('tributeNames', JSON.stringify(tributeNames));
+
+      window.location.href = 'simulator.html';
+    }
+  </script>
+</body>
+</html>
