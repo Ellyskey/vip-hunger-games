@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VIPs Hunger Games</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #1a1a1a;
+      color: #f0f0f0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+      text-align: center;
+    }
+    textarea {
+      width: 100%;
+      height: 200px;
+      padding: 10px;
+      background: #2a2a2a;
+      border: 1px solid #555;
+      color: white;
+      font-size: 16px;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 18px;
+      background-color: crimson;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: darkred;
+    }
+    #logContainer {
+      margin-top: 30px;
+      text-align: left;
+    }
+    #eventLog {
+      list-style: none;
+      padding-left: 0;
+    }
+    #winnerContainer {
+      margin-top: 30px;
+      font-size: 24px;
+      font-weight: bold;
+      color: gold;
+    }
+    #recapContainer {
+      margin-top: 20px;
+      background-color: #2a2a2a;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #555;
+    }
+  </style>
+  
+</head>
+<body>
+
+  <!-- Use your custom header component -->
+    <custom-header></custom-header>
+
+  <div class="container">
+    <h1>VIPs Hunger Games</h1>
+    <textarea id="inputNames" placeholder="Insert one name per each line..."></textarea><br>
+    <button id="startButton">Start Games</button>
+    <button id="nextDayButton" style="display:none;">Following Day</button>
+
+    <div id="logContainer">
+      <h2>What happens:</h2>
+      <ul id="eventLog"></ul>
+    </div>
+
+    <div id="recapContainer"></div>
+
+    <div id="winnerContainer"></div>
+  </div>
+
+  <script>
+    let players = [];
+    let kills = {};
+    let day = 0;
+
+    const nonFatalEvents = [
+      "managed to smuggle a deck of poker cards into the arena and is playing their ally for the bigger half of the uneven cut pinapple.",
+      "touches some grass to feel peaceful and finds a grenade.",
+      "sets fire to the arena, after that President Elly sends them cut up pieces of a mysterious plant. It's Guaco. It is a warning: Elly has planned the same fate for them.",
+      "heard a mermaid chant and experienced 27 seconds of total dissociation from the arena.",
+      "hear something moving in the jungle, a big hairy beast approches them. Luckly they are able to scare it off.",
+      "hear something moving in the jungle, a big hairy beast approches them. It's Aisha!!! They pet the cute doggo, their morale is boosted.",
+      "find a tombstone in a clearing in the woods. On it profetic words are carved: \"NEVER TRUST PINE\"",
+      "recives a sponsored gift - it is a photo of Leon's abs.",
+      "recives a sponsored gift - it is a piece of paper. A confusing message is written on it: \"one more poo\"",
+      "can't sleep, so they stay up all night watching Arcane jail scene in different lenguages. In the morning they feel really tired",
+      "found a concealed area to do a TikTok dance in order to gain sponsors.",
+      "grabs a slice of pizza they found near the Cornucopia… but they toss it aside because there are pineapples on them. “No thanks”, they say.",
+      "is frustrated with the injustice in the world. Shouts at the top of their lungs, “Hey how do you like that? Yeah, what if we set your backyard on fire, President Elly? You know you can’t. put. everyone. in. here!” Cameras cut.",
+      "is severely dehydrated and begins having a mental breakdown.",
+      "has a dream about a test they didn’t revise for. They jolt awake, relieved that it was all a dream, forgetting that they are in the Hunger Games.",
+      "forgot to sanitise the water they got from a pond and now has severe bowel issues. #!poo starts trending in the Capitol’s social media.",
+      "collapses after being shot by something in the trees. No cannon fires. They are just unconscious.",
+      "finds a mp3 player with only one song on it — “Enemy” by Imagine Dragons. They start bopping to this music and it lifts their spirits.",
+      "presses a suspicious red button on a rock (even when there was a sign above that said “don’t press”). Streams of scalding hot pomodoro sauce starts spraying uncontrollably at them.",
+      "is starving and starts eating ants… they are surprisingly delicious.",
+      "jolts awake by the traumatic sound effect of a Discord notification.",
+      "is caught by one of their snares which they set up.",
+      "blows a kiss to the cameras.",
+      "is pursued by a pack of pelican mutts. The tribute breaks down and starts singing and dancing “Baby Shark, Do-Do-Do-Do-Do”. The pelicans are disgusted and flies away from this cringe.",
+      "is woken up by the sounds of the Capitol anthem. They expect to see the photos of the Fallen but instead hears Aisha announce, “woof woof woof WOOF bark”. Important information indeed.",
+      "has only a few moments to collect supplies in the Cornucopia before others appear. They see a bag of bread on the left, and a velvet pillow on the right. They run towards the right.",
+      "is distraught that they broke their Duolingo streak."
+    ];
+
+    const fatalEvents = [
+      "is killed by a flying pineapple thrown by",
+      "puts pineapple on pizza and for this is killed by",
+      "missed their lessons for several days now. Duo is not happy and hires a hitman:",
+      "is killed at the cornucopia in an attempt to grab some supplies by",
+      "is mauled by a pack of wolf mutts after they got pushed to the floor by",
+      "is wrestled to the ground by another tribute in the cover of darkness, who whispers “this is for rickrolling me…”. The victim’s neck was then swiftly snapped by",
+      "runs to grab a one-of-a-kind Manchester City football kit from the Cornucopia, but is killed by",
+      "drowns in a massive pot of mushroom soup after their head is dunked in by"
+    ];
+
+    document.getElementById('startButton').addEventListener('click', () => {
+      const input = document.getElementById('inputNames').value.trim();
+      players = input.split('\n').map(n => n.trim()).filter(n => n);
+      if (players.length < 2) {
+        alert('Insert at least two names to start.');
+        return;
+      }
+      kills = {};
+      players.forEach(p => kills[p] = 0);
+      day = 0;
+      document.getElementById('eventLog').innerHTML = '';
+      document.getElementById('winnerContainer').innerText = '';
+      document.getElementById('recapContainer').innerHTML = '';
+      document.getElementById('nextDayButton').style.display = 'inline-block';
+      nextDay();
+    });
+
+    document.getElementById('nextDayButton').addEventListener('click', () => {
+      nextDay();
+    });
+
+    function nextDay() {
+      if (players.length <= 1) return;
+
+      day++;
+      const logList = document.getElementById('eventLog');
+      const recapContainer = document.getElementById('recapContainer');
+      let deadToday = [];
+
+      const dayHeader = document.createElement('li');
+      dayHeader.innerHTML = `<strong>--- Day ${day} ---</strong>`;
+      logList.appendChild(dayHeader);
+
+      // Eventi non letali (1-4)
+      const eventsCount = Math.floor(Math.random() * 4) + 1;
+      for (let i = 0; i < eventsCount; i++) {
+        const p = players[Math.floor(Math.random() * players.length)];
+        const event = nonFatalEvents[Math.floor(Math.random() * nonFatalEvents.length)];
+        const li = document.createElement('li');
+        li.textContent = `${p} ${event}`;
+        logList.appendChild(li);
+      }
+
+      // Morti (0-3)
+      const deathsCount = Math.min(players.length - 1, Math.floor(Math.random() * 4));
+      for (let i = 0; i < deathsCount; i++) {
+        const eliminatedIndex = Math.floor(Math.random() * players.length);
+        const eliminated = players.splice(eliminatedIndex, 1)[0];
+        const killer = players[Math.floor(Math.random() * players.length)];
+        const deathMessage = `${eliminated} ${fatalEvents[Math.floor(Math.random() * fatalEvents.length)]} ${killer}.`;
+        const li = document.createElement('li');
+        li.textContent = deathMessage;
+        logList.appendChild(li);
+        kills[killer] = (kills[killer] || 0) + 1;
+        deadToday.push(eliminated);
+      }
+
+      // Recap
+      let recapHtml = `<h3>Day Recap ${day}</h3>`;
+      recapHtml += `<p><strong>Died today:</strong> ${deadToday.length > 0 ? deadToday.join(', ') : 'No one'}</p>`;
+      recapHtml += `<p><strong>Total kills:</strong></p><ul>`;
+      for (const [name, count] of Object.entries(kills)) {
+        recapHtml += `<li>${name}: ${count} kill${count !== 1 ? 's' : ''}</li>`;
+      }
+      recapHtml += `</ul>`;
+      recapContainer.innerHTML = recapHtml;
+
+      // Controlla vincitore
+      if (players.length === 1) {
+        document.getElementById('nextDayButton').style.display = 'none';
+        document.getElementById('winnerContainer').innerText = `🏆 The Winner is: ${players[0]} 🏆`;
+      }
+    }
+  </script>
+
+  <!-- Use your custom header component -->
+    <custom-footer></custom-footer>
+
+
+    <!-- Include your component JavaScript files -->
+    <script src="header.js"></script>
+    <script src="footer.js"></script>
+    <script src="scripts.js"></script>
+    
+</body>
+</html>
