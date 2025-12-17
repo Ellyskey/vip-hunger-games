@@ -181,11 +181,11 @@
       // Recap
       let recapHtml = `<h3>Day Recap ${day}</h3>`;
       recapHtml += `<p><strong>Died today:</strong> ${deadToday.length > 0 ? deadToday.join(', ') : 'No one'}</p>`;
-      recapHtml += `<p><strong>Total kills:</strong></p><li>`;
+      recapHtml += `<p><strong>Total kills:</strong></p>`;
       for (const [name, count] of Object.entries(kills)) {
         recapHtml += `${name}: ${count} kill${count !== 1 ? 's' : ''}<br>`;
       }
-      recapHtml += `</li>`;
+      recapHtml += ``;
       recapContainer.innerHTML = recapHtml;
 
       // Controlla vincitore
