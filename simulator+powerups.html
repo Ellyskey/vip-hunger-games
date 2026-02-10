@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VIPs Hunger Games</title>
+<link rel="stylesheet" href="style.css">
+
+<style>
+textarea {
+  width: 100%;
+  height: 120px;
+  padding: 10px;
+  background: #2a2a2a;
+  border: 1px solid #555;
+  color: white;
+  font-size: 16px;
+  margin-bottom: 15px;
+}
+
+button {
+  margin-top: 10px;
+  padding: 10px 20px;
+  font-size: 18px;
+  background-color: crimson;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: darkred;
+}
+
+#sponsorPanel {
+  margin-top: 25px;
+  padding: 15px;
+  border: 1px solid #555;
+  border-radius: 8px;
+  background: #1f1f1f;
+}
+
+select {
+  padding: 8px;
+  margin: 5px;
+  font-size: 16px;
+  background: #2a2a2a;
+  color: white;
+  border: 1px solid #555;
+}
+
+#logContainer {
+  margin-top: 30px;
+  text-align: left;
+}
+
+#eventLog {
+  list-style: none;
+  padding-left: 0;
+}
+
+#winnerContainer {
+  margin-top: 30px;
+  font-size: 24px;
+  font-weight: bold;
+  color: gold;
+}
+
+#recapContainer {
+  margin-top: 20px;
+  background-color: #2a2a2a;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #555;
+}
+</style>
+</head>
+
+<body>
+
+<custom-header></custom-header>
+
+<div class="container">
+<h1>VIPs Hunger Games</h1>
+
+<textarea id="inputNonFatal" placeholder="Insert non-fatal events (one per line)..."></textarea>
+<textarea id="inputFatal" placeholder="Insert fatal events (one per line)..."></textarea>
+<textarea id="inputNames" placeholder="Insert one tribute name per line..."></textarea>
+
+<button id="startButton">Start Games</button>
+<button id="nextDayButton" style="display:none;">Following Day</button>
+
+<!-- ⭐ SPONSOR PANEL -->
+<div id="sponsorPanel" style="display:none;">
+<h2>Sponsor Actions</h2>
+
+<select id="tributeSelect"></select>
+<select id="itemSelect">
+  <option value="weapon">🗡 Weapon (+Attack)</option>
+  <option value="armor">🛡 Armor (+Defense)</option>
+  <option value="food">🍖 Food (+Survival)</option>
+  <option value="luck">🍀 Lucky Charm (+Luck)</option>
+  <option value="medicine">💊 Medicine (Prevent Death)</option>
+</select>
+
+<button onclick="applySponsor()">Send Sponsor Gift</button>
+</div>
+
+<div id="logContainer">
+<h2>What happens:</h2>
+<ul id="eventLog"></ul>
+</div>
+
+<div id="recapContainer"></div>
+<div id="winnerContainer"></div>
+
+</div>
+
+<script>
+let tributes = [];
+let kills = {};
+let day = 0;
+let nonFatalEvents = [];
+let fatalEvents = [];
+
+const defaultNonFatal = [
+  "rests in the shade",
+  "find some fresh water",
+  "builds a shelter",
+  "avoids an attack",
+  "receives a mysterious sponsorship",
+  "finds some edible berries"
+];
+
+const defaultFatal = [
+  "is brutally eliminated by",
+  "dies in a mysterious accident caused by",
+  "falls into a trap prepared by",
+  "is taken by surprise and killed by"
+];
+
+document.getElementById('startButton').addEventListener('click', () => {
+
+  const names = document.getElementById('inputNames').value
+  .split('\n').map(n => n.trim()).filter(Boolean);
+
+  if(names.length < 2){
+    alert("Insert at least two tributes");
+    return;
+  }
+
+  tributes = names.map(name => ({
+    name,
+    attack: 5,
+    defense: 5,
+    survival: 5,
+    luck: 5,
+    medicine: 0
+  }));
+
+  kills = {};
+  names.forEach(n => kills[n] = 0);
+
+  const nfInput = document.getElementById('inputNonFatal').value.trim();
+  const fInput = document.getElementById('inputFatal').value.trim();
+
+  nonFatalEvents = nfInput ? nfInput.split('\n') : [...defaultNonFatal];
+  fatalEvents = fInput ? fInput.split('\n') : [...defaultFatal];
+
+  day = 0;
+
+  document.getElementById('eventLog').innerHTML = '';
+  document.getElementById('nextDayButton').style.display = 'inline-block';
+  document.getElementById('sponsorPanel').style.display = 'block';
+
+  updateTributeDropdown();
+  nextDay();
+});
+
+document.getElementById('nextDayButton').addEventListener('click', nextDay);
+
+function updateTributeDropdown(){
+  const select = document.getElementById('tributeSelect');
+  select.innerHTML = '';
+  tributes.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t.name;
+    opt.textContent = t.name;
+    select.appendChild(opt);
+  });
+}
+
+function applySponsor(){
+  const name = document.getElementById('tributeSelect').value;
+  const item = document.getElementById('itemSelect').value;
+
+  const tribute = tributes.find(t => t.name === name);
+
+  if(item === "weapon") tribute.attack += 2;
+  if(item === "armor") tribute.defense += 2;
+  if(item === "food") tribute.survival += 2;
+  if(item === "luck") tribute.luck += 2;
+  if(item === "medicine") tribute.medicine += 1;
+
+  logEvent(`📦 Sponsors sent ${item} to ${name}!`);
+}
+
+function logEvent(text){
+  const li = document.createElement('li');
+  li.textContent = text;
+  document.getElementById('eventLog').appendChild(li);
+}
+
+function calculateDeathChance(t){
+  let chance = 0.35;
+  chance -= t.defense * 0.02;
+  chance -= t.luck * 0.01;
+  return Math.max(0.05, chance);
+}
+
+function nextDay(){
+
+  if(tributes.length <= 1) return;
+
+  day++;
+  logEvent(`--- Day ${day} ---`);
+
+  // NON FATAL EVENTS
+  let eventCount = Math.floor(Math.random()*3)+1;
+
+  for(let i=0;i<eventCount;i++){
+    const t = tributes[Math.floor(Math.random()*tributes.length)];
+    const event = nonFatalEvents[Math.floor(Math.random()*nonFatalEvents.length)];
+    logEvent(`${t.name} ${event}.`);
+  }
+
+  // FATAL EVENTS
+  let deadToday = [];
+
+  tributes = tributes.filter(t => {
+
+    if(tributes.length - deadToday.length <= 1) return true;
+
+    let deathChance = calculateDeathChance(t);
+
+    if(Math.random() < deathChance){
+
+      if(t.medicine > 0){
+        t.medicine--;
+        logEvent(`💊 ${t.name} was saved by medicine!`);
+        return true;
+      }
+
+      const killer = tributes[Math.floor(Math.random()*tributes.length)].name;
+
+      logEvent(`${t.name} ${fatalEvents[Math.floor(Math.random()*fatalEvents.length)]} ${killer}.`);
+
+      kills[killer] = (kills[killer] || 0) + 1;
+      deadToday.push(t.name);
+
+      return false;
+    }
+
+    return true;
+  });
+
+  updateTributeDropdown();
+
+  // RECAP
+  let recap = `<h3>Day Recap ${day}</h3>`;
+  recap += `<p><strong>Died today:</strong> ${deadToday.length ? deadToday.join(", ") : "No one"}</p>`;
+  recap += `<ul>`;
+  Object.entries(kills).forEach(([name,count])=>{
+    recap += `<li>${name}: ${count} kills</li>`;
+  });
+  recap += `</ul>`;
+
+  document.getElementById('recapContainer').innerHTML = recap;
+
+  // WINNER
+  if(tributes.length === 1){
+    document.getElementById('winnerContainer').innerText =
+    `🏆 Winner: ${tributes[0].name} 🏆`;
+
+    document.getElementById('nextDayButton').style.display = 'none';
+    document.getElementById('sponsorPanel').style.display = 'none';
+  }
+}
+</script>
+
+<custom-footer></custom-footer>
+<script src="header.js"></script>
+<script src="footer.js"></script>
+</body>
+</html>
