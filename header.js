@@ -96,8 +96,9 @@ headerTemplate.innerHTML = `
        <div class="dropdown">
         <a href="#" class="dropdown-toggle">The Hunger Games</a>
         <div class="dropdown-menu">
-          <a href="hungergamesmain.html">Default Events</a>
-          <a href="simulator.html">Custom Events</a>
+          <a href="defaultevents.html">Default Events</a>
+          <a href="defaulteventswsponsors.html">Default Events + Sponsors</a>
+          <a href="customevents.html">Custom Events</a>
           <a href="customeventswsponsors.html">Custom Events + Sponsors</a>
         </div>
       </div>
@@ -118,3 +119,4 @@ class CustomHeader extends HTMLElement {
 // Define the custom element
 
 customElements.define('custom-header', CustomHeader);
+
