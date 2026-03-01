@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VIPs Hunger Games</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    textarea {
+      width: 100%;
+      height: 200px;
+      padding: 10px;
+      background: #2a2a2a;
+      border: 1px solid #555;
+      color: white;
+      font-size: 16px;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 18px;
+      background-color: crimson;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: darkred;
+    }
+    #logContainer {
+      margin-top: 30px;
+      text-align: left;
+    }
+    #eventLog {
+      list-style: none;
+      padding-left: 0;
+    }
+    #winnerContainer {
+      margin-top: 30px;
+      font-size: 24px;
+      font-weight: bold;
+      color: gold;
+    }
+    #recapContainer {
+      margin-top: 20px;
+      background-color: #2a2a2a;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #555;
+      text-align: center;
+    }
+  </style>
+  
+</head>
+<body>
+
+  <!-- Use your custom header component -->
+    <custom-header></custom-header>
+
+  <div class="container">
+    <h1>VIPs Hunger Games</h1>
+    <textarea id="inputNames" placeholder="Insert one name per each line..."></textarea><br>
+    <button id="startButton">Start Games</button>
+    <button id="nextDayButton" style="display:none;">Following Day</button>
+
+    <div id="sponsorPanel" style="display:none; margin-top:20px; background:#1f1f1f; padding:15px; border-radius:8px; border:1px solid #555;">
+  <h2>Sponsor Actions</h2>
+
+  <select id="tributeSelect"></select>
+
+  <select id="itemSelect">
+    <option value="weapon">🗡 Weapon (+Attack)</option>
+    <option value="armor">🛡 Armor (+Defense)</option>
+    <option value="food">🍖 Food (+Survival)</option>
+    <option value="luck">🍀 Lucky Charm (+Luck)</option>
+    <option value="medicine">💊 Medicine (Prevent Death)</option>
+  </select>
+
+  <button onclick="applySponsor()">Send Sponsor Gift</button>
+</div>
+
+    <div id="logContainer">
+      <h2>What happens:</h2>
+      <ul id="eventLog"></ul>
+    </div>
+
+    <div id="recapContainer"></div>
+
+    <div id="winnerContainer"></div>
+  </div>
+
+
+  <script>
+let tributes = [];
+let kills = {};
+let day = 0;
+
+const nonFatalEvents = [
+  "is feeling discouraged, but that's what therapy is for. They need to think positive thoughts. 'grom smash, GROM SMASH'. Aaah, that feels better already.",
+  "can't sleep and gets their phone out to play some Contexto. After only 20 guesses, they win. The word was 'plant'. Mero world be proud of them. Today was a good day!",
+  "finds a cute place where to rest for a bit and remembers how the comfy feeling of the blankets at home",
+  "finds a massive harp in the middle of a clearing, they start playing whilst singing an angelic version of 'Pure as Driven Snow'",
+  "enters a cave and finds a massive frog plushy. Good enough, this will be a nice place to settle for the evening",
+  "is struggling to light a camp fire to fight the freezing cold. Close to giving up, they shut their eyes and start singing 'burn' by Phillipa Soo. Soon, there is rustling of dried leaves around them, and more and more tributes emerge. But instead of starting to kill each other, they each perform a display of dancing and singing, and soon the whole Hamilton Musical is being recreated. The fire has long been forgotten, as they now have warmed each other's hearts.",
+  "gets send medical supplies with an Aragorn GIF attached 'Take your meds' ",
+  "hides to rest after escaping some tributes. They believe to have no chance to win. Suddenly, they notice someone in the shadows, they're scares but then realize its just a Stitch balloon. It reminds them a balloon their big sister bought them before the games. They decide to sit close to it for a bit of comfort.",
+  "is having an internal struggle and decides to roll the Meroball. The result is 'Plants? I mean yes'. Suddenly, plants start growing in rapid speed all around, unfolding many beautiful leaves. Between all the greenery, they could have sworn they saw a person running to the plants that looked suspiciously like Mero. They blink, and both the person and all the plants are gone. Maybe it was all an illusion? Anyway, they remember that the Meroball also said 'yes', so they feel reassured that now is the right time to go for a hike.",
+  "finds a pack of Pokemon cards on the ground and starts opening it. Bummer , they have that card already.",
+  "'s vision is becoming worse because of lack of hydration. Wait is that the hydration police?  They turn around and smack against a tree. Hydratation reminder.",
+  "hears somebody honking at them. Wait .. is that a frog... In a car? When did they get their license?",
+  "steps on a lego dropped by Elly. Cursing, they bend down to remove it - just in time for an arrow to fly over their head. The message pinned to the arrowhead reads 'I know you're not drinking. I see you!'",
+  "gets the sudden urge tot play hide and Seek. How did it go again? '1...2....3...4...pun...5..6...7...8...9...10' pun in ten did.", 
+  "finds a boba tea and knows this will give a lot of energy to survive despite Pine is shaking his head somewhere",
+  "finds a lost paper of RE fanfics and can't stop to make little squeals from horniness",
+  "sings with the mouth too open and swallows a fly, eww",
+  "hears someone snickering behind some bushes, it's pineapple simping over a Leon Kennedy photo",
+  "starts impersonating Lin Manuel Miranda and sings a freestyle rap rendition of 'The Hanging Tree'. It is not well received by the audience",
+  "hears the Panem national anthem playing and starts twerking to the beat in respect of the fallen tributes",
+  "finds a polaroid camera and starts taking selfies next to the Cornucopia. They may die soon but at least they look FABULOUS",
+  "finds a cave with a sign that says 'Moonpool'. They are excited and can't wait to enter the pool to obtain some special powers! They wait hours in the freezing water, neglecting the fact that it is not a Full Moon tonight. Unfortunately, they don't get any special powers besides the early stages of hypothermia.",
+  "attempts to cross a bridge but is confronted by a Troubadour and Petank. Are they going to fight? Oh- wait no they start aggressively dancing to 'Money Money Money' from 'Mamma Mia'.",
+  "are send a copy of shakespearean plays. They gather some Tributes for a Macbeth performance and star as Macbeth. They read Macduffs line instead and run away in shame.",
+  "sees a picture of the RE characters with mods. They squeal in appreciation.",
+  "has read Macbeth ad tries to add the book to the monthly bookshelf. When they press 'send', an error message appears: Unable to process. Maximum Macbeth copies reached 21. December 2025.",
+  "gets lost trying to reach the venue of a Meowbeth performance ticket a sponsor delivered their way. The sender probably wasn't actually trying to help after all... They got so excited about witnessing one of those shows, it's been a lifetime dream, now destroyed at the edge of Death.",
+  "finds a paper sheet on the ground, after reading it they found out its a enemies-to-lovers fanfic about themselves shipped with another tribute.",
+  "sees something moving in the trees during the night. They look closer just to found out a stitch balloon trapped in some branches.",
+  "takes notes for a future fanfic about two tributes they are spying from above a tree. Suddenly a gust of wind make the paper sheet fly on the ground, near the two tributes. They are now running away full of shame.",
+  "suddenly hears tapping sounds. It's someone trying to reach the 5 million taps achievement on bongo cat repeating 'I can't stop now i'm almost there'. They don't know it was removed.",
+  "finds a cupcake on the ground. They look at it suspiciously and then they hear someone whispering 'you are going to jail hehe'"
+];
+
+const fatalEvents = [
+  "didn't pay for their dad joke. Hunted down by the dad joke police, they find themselves on the edge of a vast lego mine field. With the dad joke police behind them there is no option left but to walk over the legos to escape. The agony is indescribable, and when they reach the other end of the lego field, they roll on the ground, barely alive. That's when they realize that one officer of the dad joke police stand over them, weapon aimed to kill. One last, weak sentence escapes their mouth: 'Defeet hurt'. They were killed by",
+  "can't sleep and gets their phone out to play some Contexto. After 320 guesses they grow increasingly frustrated with that stupid game, until they finally guess the word: rhomboid. In all their cursing they didn't realize that someone stalked them. Completely taken by surprise, they're killed by",
+  "performs a forbidden deadly suplex to",
+  "is taking the meds, but it's too late to notice there is a small handmade bomb inside the package that explodes immediately; in the darkness, someone sneers: it was",
+  "finds a tiny metal shark toy on top of a large rock. They inspect it but then they're caught in a chokehold by a figure behind them, who says 'baby shark do-do-do-do-DON'T'. Their neck is then snapped by",
+  "returns from the Cornucopia with supplies, they open it and sighs with relief, 'Oh I'm glad to have this bruSHetta'. Someone behind the bushes shoots them with an arrow and shouts 'OH MIO DIO, it is brusCHETTA!' It was", 
+  "tries to win sponsors by using their talent of stand-up comedy. They climb on top of the Cornucopia and shouts, 'Hey I'm so hungry! What are we? Some kind of HUNGER GAMES HAHA'. A flying axe finds their skull thrown by a nearby, eye-rolling:",
+  "finds a books with dad jokes and laughs themselves to death. Upon further inspection the title didn't read 'dadliest jokes' but 'deathliest jokes'. Oh well... The tabloits will later claim they were killed by",
+  "finds Oceans secret knife collection in a cave. Unfortunately they miss a trap set up by",
+  "finished reading Macbeth. Honestly, he whole book was rather ... boring? They go to rate the book with two stars, pause for a moment and add half a star for good will. Shakespeare is praised after all, right? They're about to begin their evening routine when they spot something moving in the corner of their eyes: it is Pine, carrying a torch and pitchfork. There is another tribute with them who impales them for their 'crimes against Shakespeare'. They were killed by",
+  "starts sneezing repeatedly and struggling to breath. They realize too late a cat from cats district was cuddling to their leg. They die from an allergic reaction. The cat is called back by",
+  "suddenly gets trapped in a crochet net. They are trying to cut the yarn but then they realize its too late when they hear someone coming from behind:",
+  "finds some of Ocean's chemicals hidden in some bushes. They feel positive about it and want to use them to kill someone. Unfortunately they mix some chemicals wrong and an explosion can be heard in the entire arena. They were hidden as a trap by",
+  "finds a 'hurt/no comfort' fanfic on the ground. They read it and start crying on the ground. Silently someone kills them from behind. It was",
+  "finds a pack of Pokemon cards on the ground. OMG it's a Shiny gengar. Unfortunately another tribute wants to have Shiny gengar all for themselves and throws a pinecone right in the face of the first tribute killing them. It was", 
+  "get attached. 'Quick do a perception check'... 'Natural 1' Well at least you didnt see it coming. They're killed by", 
+  "is desperately trying to get some new sponsors and decides to be interactive with the audience. They find the perfect opportunity to do so as they find another tribute napping under a tree. They ask if they should kill them or let them live. They wait anxiously for the result. After a few hours the voting comes in. It's a tie. The groan of frustration is so loud , it wakes the tribute who kills them, it was"
+];
+
+document.getElementById('startButton').addEventListener('click', () => {
+  const input = document.getElementById('inputNames').value.trim();
+  const names = input.split('\n').map(n => n.trim()).filter(n => n);
+
+  if (names.length < 2) {
+    alert('Insert at least two names to start.');
+    return;
+  }
+
+  tributes = names.map(name => ({
+    name,
+    attack: 5,
+    defense: 5,
+    survival: 5,
+    luck: 5,
+    medicine: 0
+  }));
+
+  kills = {};
+  names.forEach(p => kills[p] = 0);
+
+  day = 0;
+
+  document.getElementById('eventLog').innerHTML = '';
+  document.getElementById('winnerContainer').innerText = '';
+  document.getElementById('recapContainer').innerHTML = '';
+  document.getElementById('nextDayButton').style.display = 'inline-block';
+  document.getElementById('sponsorPanel').style.display = 'block';
+
+  updateTributeDropdown();
+  nextDay();
+});
+
+document.getElementById('nextDayButton').addEventListener('click', nextDay);
+
+function updateTributeDropdown() {
+  const select = document.getElementById('tributeSelect');
+  select.innerHTML = '';
+  tributes.forEach(t => {
+    const option = document.createElement('option');
+    option.value = t.name;
+    option.textContent = t.name;
+    select.appendChild(option);
+  });
+}
+
+function applySponsor() {
+  const name = document.getElementById('tributeSelect').value;
+  const item = document.getElementById('itemSelect').value;
+  const tribute = tributes.find(t => t.name === name);
+
+  if (!tribute) return;
+
+  if (item === "weapon") tribute.attack += 2;
+  if (item === "armor") tribute.defense += 2;
+  if (item === "food") tribute.survival += 2;
+  if (item === "luck") tribute.luck += 2;
+  if (item === "medicine") tribute.medicine += 1;
+
+  logEvent(`📦 Sponsors sent ${item} to ${name}!`);
+}
+
+function logEvent(text) {
+  const li = document.createElement('li');
+  li.textContent = text;
+  document.getElementById('eventLog').appendChild(li);
+}
+
+function calculateDeathChance(t) {
+  let chance = 0.35;
+  chance -= t.defense * 0.02;
+  chance -= t.luck * 0.01;
+  return Math.max(0.05, chance);
+}
+
+function nextDay() {
+  if (tributes.length <= 1) return;
+
+  day++;
+  logEvent(`--- Day ${day} ---`);
+
+  let deadToday = [];
+
+  // Non-fatal events
+  const eventsCount = Math.floor(Math.random() * 4) + 1;
+  for (let i = 0; i < eventsCount; i++) {
+    const t = tributes[Math.floor(Math.random() * tributes.length)];
+    const event = nonFatalEvents[Math.floor(Math.random() * nonFatalEvents.length)];
+    logEvent(`${t.name} ${event}`);
+  }
+
+  // Fatal events
+  tributes = tributes.filter(t => {
+    if (tributes.length - deadToday.length <= 1) return true;
+
+    let deathChance = calculateDeathChance(t);
+
+    if (Math.random() < deathChance) {
+
+      if (t.medicine > 0) {
+        t.medicine--;
+        logEvent(`💊 ${t.name} was saved by medicine!`);
+        return true;
+      }
+
+      const killer = tributes[Math.floor(Math.random() * tributes.length)].name;
+      logEvent(`${t.name} ${fatalEvents[Math.floor(Math.random() * fatalEvents.length)]} ${killer}.`);
+      kills[killer]++;
+      deadToday.push(t.name);
+      return false;
+    }
+
+    return true;
+  });
+
+  updateTributeDropdown();
+
+  // Recap
+  let recapHtml = `<h3>Day Recap ${day}</h3>`;
+  recapHtml += `<p><strong>Died today:</strong> ${deadToday.length ? deadToday.join(', ') : 'No one'}</p>`;
+  recapHtml += `<p><strong>Total kills:</strong></p>`;
+  for (const [name, count] of Object.entries(kills)) {
+    recapHtml += `${name}: ${count} kill${count !== 1 ? 's' : ''}<br>`;
+  }
+  document.getElementById('recapContainer').innerHTML = recapHtml;
+
+  if (tributes.length === 1) {
+    document.getElementById('nextDayButton').style.display = 'none';
+    document.getElementById('sponsorPanel').style.display = 'none';
+    document.getElementById('winnerContainer').innerText =
+      `🏆 The Winner is: ${tributes[0].name} 🏆`;
+  }
+}
+</script>
+
+  <br> <br> 
+  <!-- Use your custom header component -->
+    <custom-footer></custom-footer>
+
+
+    <!-- Include your component JavaScript files -->
+    <script src="header.js"></script>
+    <script src="footer.js"></script>
+    <script src="scripts.js"></script>
+    
+</body>
+</html>
